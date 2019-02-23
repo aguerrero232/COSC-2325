@@ -1,0 +1,186 @@
+Microsoft (R) Macro Assembler Version 6.11		    10/13/18 14:49:49
+TRIANGLE.ASM						     Page 1 - 1
+
+
+				; Ariel Guerrero Assignemt - Triangle
+				.MODEL SMALL
+				            
+				.386        
+				            
+
+				;--------------------------------------------------------------------------
+				; S T A C K  S E G M E N T
+				;--------------------------------------------------------------------------
+				.STACK 4096  
+				;--------------------------------------------------------------------------
+				; D A T A  S E G M E N T
+				;--------------------------------------------------------------------------
+ 0000				.DATA   
+ 0000 00			COUNT           DB  0
+ 0001 0D 0A 41 53 53 49		prompt			DB 13,10 ,"ASSIGNMENT - TRIANGLE - BY: ARIEL GUERRERO $"
+       47 4E 4D 45 4E 54
+       20 2D 20 54 52 49
+       41 4E 47 4C 45 20
+       2D 20 42 59 3A 20
+       41 52 49 45 4C 20
+       47 55 45 52 52 45
+       52 4F 20 24
+								
+ 002F 0D 0A 24			crlf			DB	13,10,'$' 			; new line 
+
+
+				;---------------------------------------------------------------------------
+				; C O D E  S E G M E N T
+				;---------------------------------------------------------------------------
+ 0000				.CODE  
+
+ 0000				TOTRI  PROC
+
+ 0000  B7 00			        MOV BH,0   
+ 0002  B3 00			        MOV BL,0
+ 0004  B4 02			        MOV AH,2
+ 0006				    TOP:
+ 0006  80 FF 0A			        CMP BH,10
+ 0009  74 1E			        JE ENDLOOP
+ 000B  B3 00			        MOV BL,0
+				    
+ 000D				    TOPTRI:
+ 000D  38 FB			        CMP BL,BH
+ 000F  74 08			        JE BOTTRI
+ 0011  B2 2A			        MOV DL,'*'
+ 0013  CD 21			        INT 21H
+				        
+ 0015  FE C3			        INC BL
+ 0017  EB F4			        JMP TOPTRI
+ 0019				    BOTTRI:
+				        
+ 0019  B2 7C			        MOV DL ,'|'
+ 001B  CD 21			        INT 21H
+
+ 001D  B2 0A			        MOV DL,10
+ 001F  CD 21			        INT 21H
+				        
+ 0021  B2 0D			        MOV DL,13
+ 0023  CD 21			        INT 21H
+				        
+ 0025  FE C7			        INC BH
+ 0027  EB DD			        JMP TOP
+ 0029				    ENDLOOP:
+ 0029  C3			        RET
+ 002A				TOTRI  ENDP
+
+ 002A				BOTRI  PROC
+
+ 002A  B7 0A			        MOV BH,10
+ 002C  B3 00			        MOV BL,0
+ 002E  B4 02			        MOV AH,2
+ 0030				    TOP:
+ 0030  80 FF 00			        CMP BH,0
+ 0033  7C 1E			        JL ENDLOOP
+ 0035  B3 00			        MOV BL,0
+				    
+ 0037				    TOPTRI:
+ 0037  38 FB			        CMP BL,BH
+ 0039  74 08			        JE BOTTRI
+ 003B  B2 2A			        MOV DL,'*'
+ 003D  CD 21			        INT 21H
+				        
+ 003F  FE C3			        INC BL
+ 0041  EB F4			        JMP TOPTRI
+ 0043				    BOTTRI:
+				        
+ 0043  B2 7C			        MOV DL ,'|'
+ 0045  CD 21			        INT 21H
+				        
+ 0047  B2 0A			        MOV DL,10   ;cr 
+ 0049  CD 21			        INT 21H
+				        
+ 004B  B2 0D			        MOV DL,13   ; lf
+ 004D  CD 21			        INT 21H
+				        
+				        
+ 004F  FE CF			        DEC BH
+ 0051  EB DD			        JMP TOP
+ 0053				    ENDLOOP:
+ 0053  C3			        RET
+ 0054				BOTRI ENDP
+
+
+
+
+ 0054				MAIN    PROC    
+				                
+
+				        .STARTUP 
+					
+						
+ 0064  B4 09					MOV 	AH,9					;Outputs user prompt
+ 0066  BA 0001 R				MOV 	DX, OFFSET prompt
+ 0069  CD 21					INT 	21h					
+
+
+ 006B  B4 09					MOV 	AH,9					; new line
+ 006D  BA 002F R				MOV		DX,OFFSET crlf
+ 0070  CD 21					INT 	21H
+
+ 0072  E8 FF8B			        CALL    TOTRI
+ 0075  E8 FFB2			        CALL    BOTRI
+				    
+						.EXIT							; exits program
+
+
+ 007C				MAIN    ENDP
+				END										;end code
+Microsoft (R) Macro Assembler Version 6.11		    10/13/18 14:49:49
+TRIANGLE.ASM						     Symbols 2 - 1
+
+
+
+
+Segments and Groups:
+
+                N a m e                 Size     Length   Align   Combine Class
+
+DGROUP . . . . . . . . . . . . .	GROUP
+_DATA  . . . . . . . . . . . . .	16 Bit	 0032	  Word	  Public  'DATA'	
+STACK  . . . . . . . . . . . . .	16 Bit	 1000	  Para	  Stack	  'STACK'	 
+_TEXT  . . . . . . . . . . . . .	16 Bit	 007C	  Word	  Public  'CODE'	
+
+
+Procedures,  parameters and locals:
+
+                N a m e                 Type     Value    Attr
+
+BOTRI  . . . . . . . . . . . . .	P Near	 002A	  _TEXT	Length= 002A Public
+  TOP  . . . . . . . . . . . . .	L Near	 0030	  _TEXT	
+  TOPTRI . . . . . . . . . . . .	L Near	 0037	  _TEXT	
+  BOTTRI . . . . . . . . . . . .	L Near	 0043	  _TEXT	
+  ENDLOOP  . . . . . . . . . . .	L Near	 0053	  _TEXT	
+MAIN . . . . . . . . . . . . . .	P Near	 0054	  _TEXT	Length= 0028 Public
+  @Startup . . . . . . . . . . .	L Near	 0054	  _TEXT	
+TOTRI  . . . . . . . . . . . . .	P Near	 0000	  _TEXT	Length= 002A Public
+  TOP  . . . . . . . . . . . . .	L Near	 0006	  _TEXT	
+  TOPTRI . . . . . . . . . . . .	L Near	 000D	  _TEXT	
+  BOTTRI . . . . . . . . . . . .	L Near	 0019	  _TEXT	
+  ENDLOOP  . . . . . . . . . . .	L Near	 0029	  _TEXT	
+
+
+Symbols:
+
+                N a m e                 Type     Value    Attr
+
+@CodeSize  . . . . . . . . . . .	Number	 0000h	 
+@DataSize  . . . . . . . . . . .	Number	 0000h	 
+@Interface . . . . . . . . . . .	Number	 0000h	 
+@Model . . . . . . . . . . . . .	Number	 0002h	 
+@code  . . . . . . . . . . . . .	Text   	 _TEXT
+@data  . . . . . . . . . . . . .	Text   	 DGROUP
+@fardata?  . . . . . . . . . . .	Text   	 FAR_BSS
+@fardata . . . . . . . . . . . .	Text   	 FAR_DATA
+@stack . . . . . . . . . . . . .	Text   	 DGROUP
+COUNT  . . . . . . . . . . . . .	Byte	 0000	  _DATA	
+crlf . . . . . . . . . . . . . .	Byte	 002F	  _DATA	
+prompt . . . . . . . . . . . . .	Byte	 0001	  _DATA	
+
+	   0 Warnings
+	   0 Errors

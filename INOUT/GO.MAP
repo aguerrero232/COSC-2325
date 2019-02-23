@@ -1,0 +1,24 @@
+
+ Start  Stop   Length Name                   Class
+ 00000H 00044H 00045H _TEXT                  CODE 16-bit
+               at offset 00000H 00045H bytes from INOUT.OBJ (INOUT.ASM)
+
+ 00046H 0015CH 00117H _DATA                  DATA 16-bit
+               at offset 00000H 00117H bytes from INOUT.OBJ (INOUT.ASM)
+
+ 00160H 0115FH 01000H STACK                  STACK 16-bit
+               at offset 00000H 01000H bytes from INOUT.OBJ (INOUT.ASM)
+
+
+ Origin   Group
+ 0004:0   DGROUP
+
+  Address         Publics by Name
+
+ 0000:0000       MAIN
+
+  Address         Publics by Value
+
+ 0000:0000       MAIN
+
+Program entry point at 0000:0000

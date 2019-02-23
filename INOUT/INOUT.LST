@@ -1,0 +1,128 @@
+Microsoft (R) Macro Assembler Version 6.11		    09/15/18 14:29:21
+INOUT.ASM						     Page 1 - 1
+
+
+				; Ariel Guerrero Assignemt 2 - IN/OUT
+				.MODEL SMALL
+				            
+				.386        
+				            
+
+				;--------------------------------------------------------------------------
+				; S T A C K  S E G M E N T
+				;--------------------------------------------------------------------------
+				.STACK 4096  
+				;--------------------------------------------------------------------------
+				; D A T A  S E G M E N T
+				;--------------------------------------------------------------------------
+ 0000				.DATA   
+
+ 0000 0D 0A 24			crlf			DB	13,10,'$' 
+
+ 0003 FF			maxstrlen       DB  255 ; buffer[0]
+
+ 0004 00			actstrlen		DB  ?  ; buffer[1]				
+
+ 0005  00FF [			userstr			DB 255 DUP(?) ;buffer[2-255]
+        00
+       ]
+
+
+ 0104 0D 0A 45 6E 74 65		promptu			DB 13,10 ,"Enter a String: $"
+       72 20 61 20 53 74
+       72 69 6E 67 3A 20
+       24
+								
+				;---------------------------------------------------------------------------
+				; C O D E  S E G M E N T
+				;---------------------------------------------------------------------------
+ 0000				.CODE  
+
+ 0000				MAIN    PROC    
+				                
+
+				        .STARTUP 
+
+ 0010				STARTLOOP:  ;beginning of our loop	
+
+						;(1)promptu user for thier data
+						
+ 0010  B4 09					MOV 	AH,9					;Outputs user prompt
+ 0012  BA 0104 R				MOV 	DX, OFFSET promptu	
+ 0015  CD 21					INT 	21h					
+
+
+ 0017  C6 06 0004 R 00				MOV 	[actstrlen],0			; sets input buffer actual length to 0
+ 001C  B4 0A					MOV 	AH, 0Ah					; takes in input 
+ 001E  BA 0003 R				MOV 	DX, OFFSET maxstrlen				
+ 0021  CD 21					INT 	21h						
+
+ 0023  80 3E 0004 R 00				CMP		[actstrlen],0			;compare if length is zero
+ 0028  74 17					JZ 		ENDLOOP
+						
+ 002A  B4 09					MOV 	AH,9					; new line
+ 002C  BA 0000 R				MOV		DX,OFFSET crlf
+ 002F  CD 21					INT 	21H
+						
+ 0031  B4 09					MOV 	AH,9					;prints out the word
+ 0033  BA 0005 R				MOV 	DX, OFFSET userstr	
+ 0036  CD 21					INT 	21h	
+						
+ 0038  B4 09					MOV 	AH,9					; new line
+ 003A  BA 0000 R				MOV		DX,OFFSET crlf
+ 003D  CD 21					INT 	21H
+ 003F  EB CF					JMP 	STARTLOOP
+						
+ 0041				ENDLOOP: 
+						.EXIT
+
+
+ 0045				MAIN    ENDP
+				END	;end code
+Microsoft (R) Macro Assembler Version 6.11		    09/15/18 14:29:21
+INOUT.ASM						     Symbols 2 - 1
+
+
+
+
+Segments and Groups:
+
+                N a m e                 Size     Length   Align   Combine Class
+
+DGROUP . . . . . . . . . . . . .	GROUP
+_DATA  . . . . . . . . . . . . .	16 Bit	 0117	  Word	  Public  'DATA'	
+STACK  . . . . . . . . . . . . .	16 Bit	 1000	  Para	  Stack	  'STACK'	 
+_TEXT  . . . . . . . . . . . . .	16 Bit	 0045	  Word	  Public  'CODE'	
+
+
+Procedures,  parameters and locals:
+
+                N a m e                 Type     Value    Attr
+
+MAIN . . . . . . . . . . . . . .	P Near	 0000	  _TEXT	Length= 0045 Public
+  @Startup . . . . . . . . . . .	L Near	 0000	  _TEXT	
+  STARTLOOP  . . . . . . . . . .	L Near	 0010	  _TEXT	
+  ENDLOOP  . . . . . . . . . . .	L Near	 0041	  _TEXT	
+
+
+Symbols:
+
+                N a m e                 Type     Value    Attr
+
+@CodeSize  . . . . . . . . . . .	Number	 0000h	 
+@DataSize  . . . . . . . . . . .	Number	 0000h	 
+@Interface . . . . . . . . . . .	Number	 0000h	 
+@Model . . . . . . . . . . . . .	Number	 0002h	 
+@code  . . . . . . . . . . . . .	Text   	 _TEXT
+@data  . . . . . . . . . . . . .	Text   	 DGROUP
+@fardata?  . . . . . . . . . . .	Text   	 FAR_BSS
+@fardata . . . . . . . . . . . .	Text   	 FAR_DATA
+@stack . . . . . . . . . . . . .	Text   	 DGROUP
+actstrlen  . . . . . . . . . . .	Byte	 0004	  _DATA	
+crlf . . . . . . . . . . . . . .	Byte	 0000	  _DATA	
+maxstrlen  . . . . . . . . . . .	Byte	 0003	  _DATA	
+promptu  . . . . . . . . . . . .	Byte	 0104	  _DATA	
+userstr  . . . . . . . . . . . .	Byte	 0005	  _DATA	
+
+	   0 Warnings
+	   0 Errors

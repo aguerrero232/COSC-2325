@@ -1,0 +1,28 @@
+
+ Start  Stop   Length Name                   Class
+ 00000H 0007BH 0007CH _TEXT                  CODE 16-bit
+               at offset 00000H 0007CH bytes from TRIANGLE.OBJ (TRIANGLE.ASM)
+
+ 0007CH 000ADH 00032H _DATA                  DATA 16-bit
+               at offset 00000H 00032H bytes from TRIANGLE.OBJ (TRIANGLE.ASM)
+
+ 000B0H 010AFH 01000H STACK                  STACK 16-bit
+               at offset 00000H 01000H bytes from TRIANGLE.OBJ (TRIANGLE.ASM)
+
+
+ Origin   Group
+ 0007:0   DGROUP
+
+  Address         Publics by Name
+
+ 0000:002A       BOTRI
+ 0000:0054       MAIN
+ 0000:0000       TOTRI
+
+  Address         Publics by Value
+
+ 0000:0000       TOTRI
+ 0000:002A       BOTRI
+ 0000:0054       MAIN
+
+Program entry point at 0000:0054

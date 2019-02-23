@@ -1,0 +1,32 @@
+
+ Start  Stop   Length Name                   Class
+ 00000H 001DAH 001DBH _TEXT                  CODE 16-bit
+               at offset 00000H 001DBH bytes from MIDTERM.OBJ (MIDTERM.ASM)
+
+ 001DCH 004F6H 0031BH _DATA                  DATA 16-bit
+               at offset 00000H 0031BH bytes from MIDTERM.OBJ (MIDTERM.ASM)
+
+ 00500H 014FFH 01000H STACK                  STACK 16-bit
+               at offset 00000H 01000H bytes from MIDTERM.OBJ (MIDTERM.ASM)
+
+
+ Origin   Group
+ 001D:0   DGROUP
+
+  Address         Publics by Name
+
+ 0000:000A       Base64Encode
+ 0000:0103       COUNTZ
+ 0000:0000       CRLFPRNT
+ 0000:0132       MAIN
+ 0000:011C       PRINTZ
+
+  Address         Publics by Value
+
+ 0000:0000       CRLFPRNT
+ 0000:000A       Base64Encode
+ 0000:0103       COUNTZ
+ 0000:011C       PRINTZ
+ 0000:0132       MAIN
+
+Program entry point at 0000:0132

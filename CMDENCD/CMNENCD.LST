@@ -1,0 +1,691 @@
+Microsoft (R) Macro Assembler Version 6.11		    11/28/18 17:31:25
+CMNENCD.ASM						     Page 1 - 1
+
+
+				; Author Ariel Guerrero
+				; MIDTERM
+
+				.MODEL SMALL    
+
+				.386     
+
+				;----------------------------------------------------------------------------
+				; S T A C K 
+				;----------------------------------------------------------------------------
+				.STACK 4096     
+
+				;----------------------------------------------------------------------------
+				; D A T A
+				;----------------------------------------------------------------------------
+ 0000				.DATA           
+
+ 0000 0D 0A 24			CRLF         DB   13,10 ,"$"
+
+ 0003 00			ACTSTRLEN	DB 	?
+
+ 0004 4D 00			mString    DB  "M",0
+ 0006 4D 61 00			maString   DB  "Ma",0
+ 0009 4D 61 6E 00		manString  DB  "Man",0
+ 000D 4D 61 6E 20 69 73		longString DB "Man is distinguished, not only by his reason, "
+       20 64 69 73 74 69
+       6E 67 75 69 73 68
+       65 64 2C 20 6E 6F
+       74 20 6F 6E 6C 79
+       20 62 79 20 68 69
+       73 20 72 65 61 73
+       6F 6E 2C 20
+ 003B  62 75 74 20 62 79	         DB "but by this singular passion from other animals, "
+       20 74 68 69 73 20
+       73 69 6E 67 75 6C
+       61 72 20 70 61 73
+       73 69 6F 6E 20 66
+       72 6F 6D 20 6F 74
+       68 65 72 20 61 6E
+       69 6D 61 6C 73 2C
+       20
+ 006C  77 68 69 63 68 20	         DB "which is a lust of the mind, "
+       69 73 20 61 20 6C
+       75 73 74 20 6F 66
+       20 74 68 65 20 6D
+       69 6E 64 2C 20
+ 0089  74 68 61 74 20 62	         DB "that by a perseverance of delight in the continued "
+       79 20 61 20 70 65
+       72 73 65 76 65 72
+       61 6E 63 65 20 6F
+       66 20 64 65 6C 69
+       67 68 74 20 69 6E
+       20 74 68 65 20 63
+       6F 6E 74 69 6E 75
+       65 64 20
+ 00BC  61 6E 64 20 69 6E	         DB "and indefatigable generation of knowledge, "
+       64 65 66 61 74 69
+       67 61 62 6C 65 20
+       67 65 6E 65 72 61
+       74 69 6F 6E 20 6F
+       66 20 6B 6E 6F 77
+       6C 65 64 67 65 2C
+       20
+ 00E7  65 78 63 65 65 64	         DB "exceeds the short vehemence of any carnal pleasure.",0
+       73 20 74 68 65 20
+       73 68 6F 72 74 20
+       76 65 68 65 6D 65
+       6E 63 65 20 6F 66
+       20 61 6E 79 20 63
+       61 72 6E 61 6C 20
+       70 6C 65 61 73 75
+       72 65 2E 00
+				        
+
+ 011B  0100 [			cmdString    DB  256 dup(0),0
+        00
+       ] 00
+ 021C  0200 [			destString   DB  512 dup(0),0
+        00
+       ] 00
+
+
+
+
+				;----------------------------------------------------------------------------
+				; C O D E  S E G M E N T 
+				;----------------------------------------------------------------------------
+ 0000				.CODE           
+				;----------------------------------------------------------------------------------------
+
+
+
+
+				; Function: CRLF
+				;
+				;       makes a new line     
+				;
+				; INPUT:
+				;    
+				;               CRLF from data we do this because we dont want to mess with the stack    
+				;
+				; OUTPUT:
+				;
+				;                 new lines printed
+				;
+				;-----------------------------------------------------------------------------------------------------------
+				;-----------------------------------------------------------------------------------------------------------
+ 0000				CRLFPRNT PROC
+ 0000  50			PUSH AX
+
+ 0001  B4 09			MOV AH,9
+ 0003  BA 0000 R		MOV DX, OFFSET CRLF
+ 0006  CD 21			INT 21H
+
+ 0008  58			POP AX
+ 0009  C3			RET
+ 000A				CRLFPRNT ENDP
+
+
+
+				; Function: base64Encode
+				;
+				;    Encodes given string parameter (clearText) into base64 with '=' padding
+				;
+				; INPUT:
+				;    
+				;    clearText      CHAR PTR to zstring parameter containing *ASCII-ONLY* text.  
+				;                   It would be possible to encode unicode or other char-encodings 
+				;                   but I don't want to make this TOO difficult 
+				; OUTPUT:
+				;    returnstring   The string return value is the encoded form of the clearText parameter,
+				;                   padded with the base64 standard padding character, ASCII '=' (0x3D or 61)
+				;                   This padding ensures output can be concatenated with other base64
+				;                   strings and is required in most cases.
+				;
+				;-----------------------------------------------------------------------------------------------------------
+				;-----------------------------------------------------------------------------------------------------------
+
+ 000A				Base64Encode PROC   
+
+				; possible use of the CX REGISTER as a counter to compare to 
+
+				; *** heres where we set the base pointer for the stack! ***
+
+ 000A  55			PUSH    BP              ; Standard "prologue" code needed to address 
+ 000B  8B EC			MOV     BP, SP          ; function parameters passed on the stack
+
+ 000D  8B 76 04			MOV     SI,[BP+4] ; has all the source chars we want to encode 
+				    
+ 0010  56			PUSH    SI
+ 0011  E8 00EF			CALL    COUNTZ
+ 0014  83 C4 02			ADD     SP,2
+
+ 0017  8B C8			MOV     CX, AX   ; Moves the integer length of the source string from AX to CX  
+ 0019  B8 0000			MOV     AX,0     ; reset AX
+ 001C  90			NOP              ; checking here 
+
+ 001D  8B 7E 06			MOV     DI, [BP+6] ; has the destString buffer to store our encoded chars
+
+
+ 0020				DEFAULT:
+
+				; need a check to test if its an empty string
+ 0020  83 F9 00			CMP CX,0
+ 0023  0F 84 0098		JE  DONE
+
+				; need a check to see if its 3 chars and of not how many......
+
+				;------------------------------------------------------------------------------------------------------------    
+				; HIGH LEVEL + PSUDEO FOR 1ST CHAR
+				;------------------------------------------------------------------------------------------------------------    
+				    ;     ixDigit[0] = (clearText[0] >> 2);            // (uuuu_vvVV SHR 2) == 00uu_uuvv 
+				    ;                                                 // Gives our 1st base64 digit:: uuuuvv
+				    ; compute decodeIndex[0]
+				;------------------------------------------------------------------------------------------------------------    
+				; ACTUAL 
+				;------------------------------------------------------------------------------------------------------------    
+ 0027  BB 0000			    MOV     BX, 0
+ 002A  8A 04			    MOV     AL,[SI]     ;1st char   clearText[0]
+				    ; AL has an ascii a bit char we only want the first 6 bits
+ 002C  C0 E8 02			    SHR     AL, 2 ; e x) abcd efgh -> 00ab cdef
+ 002F  8A D8			    MOV     BL, AL
+ 0031  B4 00			    MOV     AH, 0
+ 0033  2E: 8A 87 00C3 R		    MOV     AL, CS:b64Table[BX]
+ 0038  88 05			    MOV     [DI], AL ; dst string decodeIndex[0] 
+ 003A  90			    NOP
+
+				 
+
+				;------------------------------------------------------------------------------------------------------------    
+				; HIGH LEVEL + PSUDEO FOR 2ND CHAR
+				;------------------------------------------------------------------------------------------------------------    
+				    ;
+				    ;     ixDigit[1] = ((clearText[0] & 0x03) << 4)    // ((uuuu_VVvv & 0000_0011) SHL 4) == 00vv_0000
+				    ;              |                               //  BINARY OR with...
+				    ;               (clearText[1] >> 4);            // (wwww_xxxx SHR 4) == 0000_wwww
+				    ;                                                // 00vv_0000|0000_wwww == 00vv_wwww 
+				    ;                                                 // Gives our 2nd base64 digit: vvwwww
+				    ;
+				    ; compute decodeIndex[1]
+				    ;  AL has 1st char        MOV AL,[SI]   
+				    ;2nd char   clearText[1]  ALSO uses SI+1
+				    ;  using top example: abcd efgh   need the last 2 so shift left four 
+				    ;  SHL AL,4
+				    ;                                                                        efgh 0000
+				    ;  AND AL,3F                                                             0011 1111
+				    ;                                                              result->  00gh 0000
+				    ;  MOV AH,[SI+1] -> ijkl mnop 
+				    ;   we want 00gh+ijkl
+				    ;    SHR AH,4   ->  0000 ijkl
+				    ; now compsine them using or 
+				    ;    OR AL,AH                                               00gh 0000
+				    ;                                                           0000 ijkl
+				    ;                                                           00gh ijkl
+				    ;
+				    ; now need to store this value                                                          
+				;------------------------------------------------------------------------------------------------------------    
+				; ACTUAL
+				;------------------------------------------------------------------------------------------------------------    
+ 003B  BB 0000			    MOV     BX, 0
+ 003E  8A 04			    MOV     AL,[SI] 
+ 0040  C0 E0 04			    SHL     AL,4
+ 0043  24 2D			    AND     AL,3F
+ 0045  8A 64 01			    MOV     AH,[SI+1]
+ 0048  C0 EC 04			    SHR     AH, 4
+ 004B  0A C4			    OR      AL,AH
+ 004D  8A D8			    MOV     BL, AL
+ 004F  B4 00			    MOV     AH,0
+ 0051  2E: 8A 87 00C3 R		    MOV     AL, CS:b64Table[BX]
+ 0056  88 45 01			    MOV     [DI+1], AL ; dst string decodeIndex[1] 
+ 0059  90			    NOP
+
+ 005A  83 F9 02			    CMP  CX,2
+ 005D  74 52			    JE   _2CHAR
+
+				;------------------------------------------------------------------------------------------------------------ 
+				; HIGH LEVEL + PSUDEO FOR 3RD CHAR  
+				;------------------------------------------------------------------------------------------------------------    
+				    ;     ixDigit[2] = ((clearText[1] & 0x0F) << 2)   // ((wwww_xxxx & 0000_1111) SHL 2) == 00xx_xx00
+				    ;               |                                 //  BINARY OR with...
+				    ;                 (clearText[2] >> 6);            // (yyYY_zzzz SHR 6) == 0000_00yy 
+				    ;                                                 // 00xx_xx00|0000_00yy == 00xx_xxyy 
+				    ;                                                 // Gives our 3rd base64 digit: xxxxyy
+				    ;
+				    ;   the 3rd char uses clearText[1] and cleaarText[2]
+				    ;   clearText[1] = ijkl mnop need -> 00mn op00 
+				    ;         shift left 2
+				    ;  SHL
+				    ; compute decodeIndex[2]
+				;------------------------------------------------------------------------------------------------------------
+				; ACTUAL    
+				;------------------------------------------------------------------------------------------------------------      
+
+ 005F  BB 0000			    MOV     BX, 0
+ 0062  8A 44 01			    MOV     AL,[SI+1]   ;   clearText[2]
+ 0065  C0 E0 02			    SHL     AL, 2
+ 0068  24 0F			    AND     AL,15
+ 006A  8A 64 02			    MOV     AH, [SI+2]
+ 006D  C0 EC 06			    SHR     AH,6
+ 0070  0A C4			    OR      AL,AH
+ 0072  8A D8			    MOV     BL, AL
+ 0074  B4 00			    MOV     AH,0
+ 0076  2E: 8A 87 00C3 R		    MOV     AL, CS:b64Table[BX]
+ 007B  88 45 02			    MOV     [DI+2], AL ; dst string decodeIndex[2] 
+ 007E  90			    NOP
+				;------------------------------------------------------------------------------------------------------------
+				; HIGH LEVEL + PSUDEO FOR 4TH CHAR 
+				;------------------------------------------------------------------------------------------------------------       
+				    ;
+				    ;     ixDigit[3] = (clearText[2] & 0x3F);          // AND finally, yyyy_zzzz & 0011_1111 == 00yy_zzzz
+				    ;                                                   // Gives our 4th base64 digit: yyzzzz
+				    ; compute decodeIndex[3]
+				;------------------------------------------------------------------------------------------------------------    
+				; ACTUAL 
+				;------------------------------------------------------------------------------------------------------------    
+ 007F  BB 0000			    MOV     BX, 0
+ 0082  8A 44 02			    MOV     AL, [SI+2] 
+ 0085  C0 E0 02			    SHL     AL, 2   ; just want the last 6 so move abcd efgh left 2  -> cdef gh00   
+ 0088  C0 E8 02			    SHR     AL, 2   ;                now move back for correct value -> 00cd efgh 
+ 008B  8A D8			    MOV     BL, AL
+ 008D  B4 00			    MOV     AH, 0 
+ 008F  2E: 8A 87 00C3 R		    MOV     AL, CS:b64Table[BX]
+ 0094  88 45 03			    MOV     [DI+3], AL ; dst string decodeIndex[3] 
+ 0097  90			    NOP             ; DI++ DI IS NOW 4 
+
+ 0098  83 F9 01			    CMP  CX,1
+ 009B  74 1B			    JE   _1CHAR
+				;------------------------------------------------------------------------------------------------------------    
+				; 
+				;------------------------------------------------------------------------------------------------------------    
+				    
+				    ; next 3 in next 4 out because for every 3 you get four
+ 009D  83 C6 03			    ADD    SI,3
+ 00A0  83 C7 04			    ADD    DI,4
+ 00A3  83 E9 03			    SUB    CX,3
+ 00A6  0F 8D FF76		    JNL   DEFAULT
+
+ 00AA				NOTENOUGHCHARS:
+
+				; say we had 8 chars so it would go | 8-3 -> 5-3 -> 2-3 -> -1  <- CX FINAL VAL AFTER DEFAULT LOOP for INPUT CHAR = 8
+				;  so we have 3-1 chars to start with (2) so we need 1 more char 
+				;  to go from -1 -> 1 we negate CX and boom we have the value of chars we need 
+				;                                              
+ 00AA  F7 D9			    NEG CX                               
+ 00AC  83 F9 01			    CMP CX,1
+ 00AF  74 07			    JE  _1CHAR
+
+
+ 00B1				_2CHAR:
+ 00B1  B0 3D			    MOV AL,'='
+ 00B3  88 45 02			    MOV [DI+2], AL 
+ 00B6  B0 00			    MOV AL,0
+
+ 00B8				_1CHAR:   
+ 00B8  B0 3D			    MOV AL,'='
+ 00BA  88 45 03			    MOV [DI+3], AL  
+ 00BD  B0 00			    MOV AL,0 
+
+ 00BF				DONE:
+
+ 00BF  5D			    POP BP
+ 00C0  C2 0006			    RET          6               ; Explicit removal 6-bytes from stack AFTER return
+
+ 00C3 41 42 43 44 45 46		    b64Table     DB  "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/" ; for usage as CS:b64Table[0..63]
+       47 48 49 4A 4B 4C
+       4D 4E 4F 50 51 52
+       53 54 55 56 57 58
+       59 5A 61 62 63 64
+       65 66 67 68 69 6A
+       6B 6C 6D 6E 6F 70
+       71 72 73 74 75 76
+       77 78 79 7A 30 31
+       32 33 34 35 36 37
+       38 39 2B 2F
+
+ 0103				Base64Encode ENDP
+
+				;--------------------------------------------------------------------------
+				; PROC: int zCount ( ADDRESS str );
+				;    Computes length of the strings CONTENTS, not including Zero terminator
+				;
+				; Stack Diagram:   
+				;   [BP+4]      String parameter    sourceString      
+				;   [BP+2]      RA              Return Address
+				;   [BP+0]      SAVED BP
+				;
+				; CALLING CONVENTION:
+				;       Right-to-left stack order parameters 
+				;       caller cleans up parameters
+				;       registers destroyed: AX,BX,CX,DX    
+				;       registers preserved: SI, DI
+				;       
+				;
+				; INPUT: 
+				;       sourceString            Address of an ASCII z-String 
+				;
+				; OUTPUT:
+				;       AX      Length of sourceStr
+				;
+				; SIDE EFFECT:    
+				;       NONE
+				;--------------------------------------------------------------------------
+ 0103				COUNTZ PROC
+
+ 0103  55			    PUSH    BP 
+ 0104  8B EC			    MOV     BP,SP
+ 0106  56			    PUSH    SI
+ 0107  57			    PUSH    DI
+
+ 0108  8B 5E 04			    MOV BX, [BP+4]
+ 010B				TOP:
+
+				    ;Get Char @ INDEX  and checking if its a 0 if 0 end loop
+ 010B  80 3F 00			    CMP BYTE PTR [BX],0
+ 010E  74 03			    JE BOTTOM
+				    
+				    ;INDEX++
+ 0110  43			    INC BX 
+
+				    ;REPEAT LOOP
+ 0111  EB F8			    JMP TOP 
+
+ 0113				BOTTOM:
+ 0113  2B 5E 04			    SUB BX, [BP+4]
+ 0116  8B C3			    MOV AX, BX
+
+ 0118  5F			    POP     DI
+ 0119  5E			    POP     SI
+ 011A  5D			    POP     BP
+ 011B  C3			    RET
+
+ 011C				COUNTZ ENDP
+				;--------------------------------------------------------------------------
+				; PROC: pritns a 0 terminated string clear text
+				; INPUT: BX of zeroterminated string
+				; 
+				; OUTPUT: 
+				; SIDE EFFECT:    Screen printing
+				;--------------------------------------------------------------------------
+ 011C				PRINTZ PROC
+
+ 011C  55			    PUSH BP 
+ 011D  8B EC			    MOV  BP,SP
+
+
+
+ 011F  8B 5E 04			    MOV BX, [BP+4]
+ 0122				TOP:
+
+				    ;Get Char @ INDEX  and checking if its a 0 if 0 end loop
+ 0122  80 3F 00			    CMP BYTE PTR [BX],0
+ 0125  74 09			    JE BOTTOM
+				    
+				    ;STORE CHAR IN DL  char = DL to print from memory at BX
+ 0127  8A 17			    MOV DL,[BX]
+
+				    ;PrintChar already in dl
+ 0129  B4 02			    MOV  AH, 2
+ 012B  CD 21			    INT 21H
+
+				    ;INDEX++
+ 012D  43			    INC BX 
+
+				    ;REPEAT LOOP
+ 012E  EB F2			    JMP TOP 
+
+ 0130				BOTTOM:
+
+ 0130  5D			    POP BP
+ 0131  C3			    RET
+
+ 0132				PRINTZ ENDP
+
+				;----------------------------------------------------------------------------------
+				; Procedure: CopyBuffer
+				;     Copies one memory buffer of a given size to another
+				; Input:
+				;				src buffer		SI
+				;				dst buffer		DI
+				;				ACTSTRLEN		CX
+				; Output:
+				;    			 N/A
+				; Side Effects
+				;     			moves the user string into the dst string (dummy string)
+				;----------------------------------------------------------------------------------
+ 0132				CopyBuffer  PROC  
+
+ 0132  FC				CLD
+ 0133  F3/ A4			    REP		MOVSB
+ 0135  C3				RET
+
+ 0136				CopyBuffer  ENDP
+
+ 0136				MAIN    PROC    
+				    .STARTUP       
+				   
+
+ 0146  68 0004 R		    PUSH OFFSET mString      ; pushing the SI so we can print out the source String in our print z proc 
+ 0149  E8 FFD0			    CALL PRINTZ
+ 014C  83 C4 02			    ADD SP,2
+				    
+ 014F  E8 FEAE			    CALL CRLFPRNT
+				        
+
+ 0152  BE 0004 R		    MOV SI,OFFSET mString  
+ 0155  BF 021C R		    MOV DI,OFFSET destString 
+
+ 0158  57			    PUSH DI          ; [BP+6]
+ 0159  56			    PUSH SI          ; [BP+4]
+
+ 015A  E8 FEAD			    CALL Base64Encode ; encode passes string output encoded string 
+				    
+ 015D  68 021C R		    PUSH OFFSET destString      ; pushing the DI so we can print out the destString in our print z proc 
+ 0160  E8 FFB9			    CALL PRINTZ
+ 0163  83 C4 02			    ADD SP,2
+
+ 0166  E8 FE97			    CALL CRLFPRNT
+ 0169  E8 FE94			    CALL CRLFPRNT
+
+
+ 016C  68 0006 R		    PUSH OFFSET maString      ; pushing the SI so we can print out the source String in our print z proc 
+ 016F  E8 FFAA			    CALL PRINTZ
+ 0172  83 C4 02			    ADD SP,2
+				    
+ 0175  E8 FE88			    CALL CRLFPRNT
+				    
+
+
+ 0178  BE 0006 R		    MOV SI,OFFSET maString  
+ 017B  BF 021C R		    MOV DI,OFFSET destString 
+
+ 017E  57			    PUSH DI          ; [BP+6]
+ 017F  56			    PUSH SI          ; [BP+4]
+
+ 0180  E8 FE87			    CALL Base64Encode ; encode passes string output encoded string 
+				    
+ 0183  68 021C R		    PUSH OFFSET destString      ; pushing the DI so we can print out the destString in our print z proc 
+ 0186  E8 FF93			    CALL PRINTZ
+ 0189  83 C4 02			    ADD SP,2
+
+ 018C  E8 FE71			    CALL CRLFPRNT
+ 018F  E8 FE6E			    CALL CRLFPRNT
+				    
+
+
+
+
+
+
+ 0192  68 0009 R		    PUSH OFFSET manString      ; pushing the SI so we can print out the source String in our print z proc 
+ 0195  E8 FF84			    CALL PRINTZ
+ 0198  83 C4 02			    ADD SP,2
+				    
+ 019B  E8 FE62			    CALL CRLFPRNT
+				    
+ 019E  BE 0009 R		    MOV SI,OFFSET manString  
+ 01A1  BF 021C R		    MOV DI,OFFSET destString 
+
+ 01A4  57			    PUSH DI          ; [BP+6]
+ 01A5  56			    PUSH SI          ; [BP+4]
+
+ 01A6  E8 FE61			    CALL Base64Encode ; encode passes string output encoded string 
+				    
+ 01A9  68 021C R		    PUSH OFFSET destString      ; pushing the DI so we can print out the destString in our print z proc 
+ 01AC  E8 FF6D			    CALL PRINTZ
+ 01AF  83 C4 02			    ADD SP,2
+
+ 01B2  E8 FE4B			    CALL CRLFPRNT
+ 01B5  E8 FE48			    CALL CRLFPRNT
+
+
+
+
+
+
+ 01B8  68 000D R		    PUSH OFFSET longString      ; pushing the SI so we can print out the source String in our print z proc 
+ 01BB  E8 FF5E			    CALL PRINTZ
+ 01BE  83 C4 02			    ADD SP,2
+				    
+ 01C1  E8 FE3C			    CALL CRLFPRNT
+ 01C4  E8 FE39			    CALL CRLFPRNT
+				    
+ 01C7  BE 000D R		    MOV SI,OFFSET longString 
+ 01CA  BF 021C R		    MOV DI,OFFSET destString  
+				    
+ 01CD  57			    PUSH DI          ; [BP+6]
+ 01CE  56			    PUSH SI          ; [BP+4]
+
+ 01CF  E8 FE38			    CALL Base64Encode ; encode passes string output encoded string 
+				    
+ 01D2  68 021C R		    PUSH OFFSET destString      ; pushing the DI so we can print out the destString in our print z proc 
+ 01D5  E8 FF44			    CALL PRINTZ
+ 01D8  83 C4 02			    ADD SP,2
+				   
+ 01DB  E8 FE22			    CALL CRLFPRNT
+ 01DE  E8 FE1F			    CALL CRLFPRNT
+
+				; swapping segments es-> ds | ds-> es    // so we can access command line data found in es
+ 01E1  06			    PUSH ES
+ 01E2  1E			    PUSH DS
+ 01E3  07			    POP  ES
+ 01E4  1F			    POP  DS
+
+				 
+ 01E5  B9 00FF			    MOV CX, 255
+ 01E8  8D 36 0082		    LEA SI,DS:[82h]
+ 01EC  8D 3E 011B R		    LEA DI, cmdString
+
+ 01F0  E8 FF3F			    CALL CopyBuffer
+
+ 01F3  8B F7			    MOV SI,DI
+ 01F5  BF 021C R		    MOV DI, OFFSET destString
+				    
+ 01F8  57			    PUSH DI          ; [BP+6]
+ 01F9  56			    PUSH SI          ; [BP+4]
+				    
+ 01FA  E8 FE0D			    CALL Base64Encode
+
+ 01FD  68 021C R		    PUSH OFFSET destString      ; pushing the DI so we can print out the destString in our print z proc 
+ 0200  E8 FF19			    CALL PRINTZ
+ 0203  83 C4 02			    ADD SP,2
+				   
+ 0206  E8 FDF7			    CALL CRLFPRNT
+ 0209  E8 FDF4			    CALL CRLFPRNT
+				    
+				    .EXIT 
+ 0210				MAIN    ENDP    
+				END 
+				;   ________________
+				;  |                |               AND 03 (think binary and 8 bits so 0000_0011) so this can be any hex value under 64
+				;  |                |                  |
+				; MOV  dstBuffer    | sourceBuffer[0]  |     SHIFTED 4 
+				;         |         |           |      |      |   
+				;         V         v           V      V      V   
+				;       ixDigit[1] = ((clearText[0] & 0x03)  << 4)    // ((uuuu_VVvv & 0000_0011) SHL 4) == 00vv_0000
+				;      OR    ->       |       <- remember or means add   
+				;          ->      (clearText[1] >> 4);                  
+				;         |                                         
+				;         |                                      
+				;         we need the 2nd two bits of the second char so we shift right 4 
+				;                   
+				;
+				;
+				; VISUAL DST BUFFER)          ABCD EFGH
+				;                   AND       0000 0011
+				;                   remaining 0000 00GH         =  ((clearText[0] & 0x03)  << 4)
+				;                   SHL       00GH 0000
+				;           IMPLY clearText[0] = ABCD EFGH  clearText[1] = IJKL MNOP
+				;                                   HAVE: 00GH 0000
+				;                                   NEED: IJKL MNOP then shift left 4 to get 
+				;                                         0000 IJKL and then OR it together to get 00GH IJKL 
+				;                                         which is our 6 bits we need for the 2nd out char 
+				;                                                  
+				;                                    OR (clearText[1] >> 4)         (REMEMBER OR MEANS ADD)
+				;
+				;                           
+				;
+				; 
+				;     ixDigit[1] = ((clearText[0] & 0x03) << 4)    // ((uuuu_VVvv & 0000_0011) SHL 4) == 00vv_0000
+				;              |                               //  BINARY OR with...
+				;               (clearText[1] >> 4);            // (wwww_xxxx SHR 4) == 0000_wwww
+				;                                                // 00vv_0000|0000_wwww == 00vv_wwww 
+				;                                                 // Gives our 2nd base64 digit: vvwwww
+;
+Microsoft (R) Macro Assembler Version 6.11		    11/28/18 17:31:25
+CMNENCD.ASM						     Symbols 2 - 1
+
+
+
+
+Segments and Groups:
+
+                N a m e                 Size     Length   Align   Combine Class
+
+DGROUP . . . . . . . . . . . . .	GROUP
+_DATA  . . . . . . . . . . . . .	16 Bit	 041D	  Word	  Public  'DATA'	
+STACK  . . . . . . . . . . . . .	16 Bit	 1000	  Para	  Stack	  'STACK'	 
+_TEXT  . . . . . . . . . . . . .	16 Bit	 0210	  Word	  Public  'CODE'	
+
+
+Procedures,  parameters and locals:
+
+                N a m e                 Type     Value    Attr
+
+Base64Encode . . . . . . . . . .	P Near	 000A	  _TEXT	Length= 00F9 Public
+  DEFAULT  . . . . . . . . . . .	L Near	 0020	  _TEXT	
+  NOTENOUGHCHARS . . . . . . . .	L Near	 00AA	  _TEXT	
+  _2CHAR . . . . . . . . . . . .	L Near	 00B1	  _TEXT	
+  _1CHAR . . . . . . . . . . . .	L Near	 00B8	  _TEXT	
+  DONE . . . . . . . . . . . . .	L Near	 00BF	  _TEXT	
+COUNTZ . . . . . . . . . . . . .	P Near	 0103	  _TEXT	Length= 0019 Public
+  TOP  . . . . . . . . . . . . .	L Near	 010B	  _TEXT	
+  BOTTOM . . . . . . . . . . . .	L Near	 0113	  _TEXT	
+CRLFPRNT . . . . . . . . . . . .	P Near	 0000	  _TEXT	Length= 000A Public
+CopyBuffer . . . . . . . . . . .	P Near	 0132	  _TEXT	Length= 0004 Public
+MAIN . . . . . . . . . . . . . .	P Near	 0136	  _TEXT	Length= 00DA Public
+  @Startup . . . . . . . . . . .	L Near	 0136	  _TEXT	
+PRINTZ . . . . . . . . . . . . .	P Near	 011C	  _TEXT	Length= 0016 Public
+  TOP  . . . . . . . . . . . . .	L Near	 0122	  _TEXT	
+  BOTTOM . . . . . . . . . . . .	L Near	 0130	  _TEXT	
+
+
+Symbols:
+
+                N a m e                 Type     Value    Attr
+
+@CodeSize  . . . . . . . . . . .	Number	 0000h	 
+@DataSize  . . . . . . . . . . .	Number	 0000h	 
+@Interface . . . . . . . . . . .	Number	 0000h	 
+@Model . . . . . . . . . . . . .	Number	 0002h	 
+@code  . . . . . . . . . . . . .	Text   	 _TEXT
+@data  . . . . . . . . . . . . .	Text   	 DGROUP
+@fardata?  . . . . . . . . . . .	Text   	 FAR_BSS
+@fardata . . . . . . . . . . . .	Text   	 FAR_DATA
+@stack . . . . . . . . . . . . .	Text   	 DGROUP
+ACTSTRLEN  . . . . . . . . . . .	Byte	 0003	  _DATA	
+CRLF . . . . . . . . . . . . . .	Byte	 0000	  _DATA	
+b64Table . . . . . . . . . . . .	Byte	 00C3	  _TEXT	
+cmdString  . . . . . . . . . . .	Byte	 011B	  _DATA	
+destString . . . . . . . . . . .	Byte	 021C	  _DATA	
+longString . . . . . . . . . . .	Byte	 000D	  _DATA	
+mString  . . . . . . . . . . . .	Byte	 0004	  _DATA	
+maString . . . . . . . . . . . .	Byte	 0006	  _DATA	
+manString  . . . . . . . . . . .	Byte	 0009	  _DATA	
+
+	   0 Warnings
+	   0 Errors

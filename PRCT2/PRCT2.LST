@@ -1,0 +1,105 @@
+Microsoft (R) Macro Assembler Version 6.11		    09/02/18 02:10:02
+PRCT2.ASM						     Page 1 - 1
+
+
+				; Author: Ariel Isidro Guerrero
+
+				; Practice Program learning how to add before I go to class because I want to
+				; be a know it all!
+
+				.model small
+				.stack 4096
+ 0000				.data
+ 0000 20 69 6E 70 75 74		msg     db  " input a number !$"
+       20 61 20 6E 75 6D
+       62 65 72 20 21 24
+ 0012 20 74 68 65 20 73		msg2    db  " the sum is:$"
+       75 6D 20 69 73 3A
+       24
+
+ 0000				.code
+ 0000				prct2   PROC
+ 0000  B8 ---- R		mov ax,@data           ; takes data and stores it into ax
+ 0003  8E D8			mov ds,ax              ; takes ax and stores that in the data segment
+
+ 0005  8D 16 0000 R		lea dx,msg             ; loading the effective address of msg 
+ 0009  B4 09			mov ah,9               ; 9 means we are printing a string
+ 000B  CD 21			int  21h
+
+ 000D  B4 01			mov ah,1               ; here's where we take in the number input
+ 000F  CD 21			int 21h
+
+ 0011  8A D8			mov bl,al              ; we are storing the number we got in bl
+
+ 0013  8D 16 0000 R		lea dx,msg             ; here we are prompting the user for the 2nd number
+ 0017  B4 09			mov ah,9
+ 0019  CD 21			int 21h
+
+ 001B  B4 01			mov ah,1               ; just like how 9 is for strings 1 is for take in a character
+ 001D  CD 21			int 21h
+
+ 001F  8A C8			mov cl,al              ; storing the number in cl (or al??)
+
+ 0021  8D 16 0012 R		lea dx,msg2            ; loading up the effective address of msg2
+ 0025  B4 09			mov ah,9               ; and printing it to the screen (ah,9 is print string)
+ 0027  CD 21			int 21h
+
+ 0029  80 EB 30			sub bl,30h             ; here is where we subtract im guessing
+ 002C  80 E9 30			sub cl,30h             ; what is 30h i need to understand this part better
+
+ 002F  02 CB			add cl,bl              ; pretty sure this is add but i have no idea how and why the 
+ 0031  80 C1 30			add cl,30h             ; numbers are stored where they are and what calls we are making
+
+ 0034  8A D1			mov dl,cl              ; i think this is where we put the two numbers together
+ 0036  B4 02			mov ah,2               ; and the call for ah,2 is to print a char 
+ 0038  CD 21			int 21h
+
+ 003A  B4 4C			mov ah,4ch             ; what is 4ch?
+ 003C  CD 21			int 21h
+
+
+ 003E				prct2   endP
+
+				end prct2
+				x
+Microsoft (R) Macro Assembler Version 6.11		    09/02/18 02:10:02
+PRCT2.ASM						     Symbols 2 - 1
+
+
+
+
+Segments and Groups:
+
+                N a m e                 Size     Length   Align   Combine Class
+
+DGROUP . . . . . . . . . . . . .	GROUP
+_DATA  . . . . . . . . . . . . .	16 Bit	 001F	  Word	  Public  'DATA'	
+STACK  . . . . . . . . . . . . .	16 Bit	 1000	  Para	  Stack	  'STACK'	 
+_TEXT  . . . . . . . . . . . . .	16 Bit	 003E	  Word	  Public  'CODE'	
+
+
+Procedures,  parameters and locals:
+
+                N a m e                 Type     Value    Attr
+
+prct2  . . . . . . . . . . . . .	P Near	 0000	  _TEXT	Length= 003E Public
+
+
+Symbols:
+
+                N a m e                 Type     Value    Attr
+
+@CodeSize  . . . . . . . . . . .	Number	 0000h	 
+@DataSize  . . . . . . . . . . .	Number	 0000h	 
+@Interface . . . . . . . . . . .	Number	 0000h	 
+@Model . . . . . . . . . . . . .	Number	 0002h	 
+@code  . . . . . . . . . . . . .	Text   	 _TEXT
+@data  . . . . . . . . . . . . .	Text   	 DGROUP
+@fardata?  . . . . . . . . . . .	Text   	 FAR_BSS
+@fardata . . . . . . . . . . . .	Text   	 FAR_DATA
+@stack . . . . . . . . . . . . .	Text   	 DGROUP
+msg2 . . . . . . . . . . . . . .	Byte	 0012	  _DATA	
+msg  . . . . . . . . . . . . . .	Byte	 0000	  _DATA	
+
+	   0 Warnings
+	   0 Errors

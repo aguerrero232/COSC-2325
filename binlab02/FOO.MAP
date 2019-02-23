@@ -1,0 +1,31 @@
+
+ Start  Stop   Length Name                   Class
+ 00000H 00123H 00124H _TEXT                  CODE 16-bit
+               at offset 00000H 000C5H bytes from LABEX02.OBJ (LABEX02.ASM)
+               at offset 000C6H 0005EH bytes from NFORMAT.OBJ (NFORMAT.ASM)
+
+ 00124H 001EFH 000CCH _DATA                  DATA 16-bit
+               at offset 00000H 000CBH bytes from LABEX02.OBJ (LABEX02.ASM)
+
+ 001F0H 005EFH 00400H STACK                  STACK 16-bit
+               at offset 00000H 00400H bytes from LABEX02.OBJ (LABEX02.ASM)
+
+
+ Origin   Group
+ 0012:0   DGROUP
+
+  Address         Publics by Name
+
+ 0000:00C6       FORMAT_NUMBER
+ 0000:0000       MAIN
+ 0000:0038       PRINT_HEADER
+ 0000:0047       PRINT_ROW
+
+  Address         Publics by Value
+
+ 0000:0000       MAIN
+ 0000:0038       PRINT_HEADER
+ 0000:0047       PRINT_ROW
+ 0000:00C6       FORMAT_NUMBER
+
+Program entry point at 0000:0000

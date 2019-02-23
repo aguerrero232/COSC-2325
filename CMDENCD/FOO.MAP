@@ -1,0 +1,34 @@
+
+ Start  Stop   Length Name                   Class
+ 00000H 0020FH 00210H _TEXT                  CODE 16-bit
+               at offset 00000H 00210H bytes from CMNENCD.OBJ (CMNENCD.ASM)
+
+ 00210H 0062CH 0041DH _DATA                  DATA 16-bit
+               at offset 00000H 0041DH bytes from CMNENCD.OBJ (CMNENCD.ASM)
+
+ 00630H 0162FH 01000H STACK                  STACK 16-bit
+               at offset 00000H 01000H bytes from CMNENCD.OBJ (CMNENCD.ASM)
+
+
+ Origin   Group
+ 0021:0   DGROUP
+
+  Address         Publics by Name
+
+ 0000:000A       Base64Encode
+ 0000:0132       CopyBuffer
+ 0000:0103       COUNTZ
+ 0000:0000       CRLFPRNT
+ 0000:0136       MAIN
+ 0000:011C       PRINTZ
+
+  Address         Publics by Value
+
+ 0000:0000       CRLFPRNT
+ 0000:000A       Base64Encode
+ 0000:0103       COUNTZ
+ 0000:011C       PRINTZ
+ 0000:0132       CopyBuffer
+ 0000:0136       MAIN
+
+Program entry point at 0000:0136

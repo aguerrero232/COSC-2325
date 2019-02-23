@@ -1,0 +1,34 @@
+
+ Start  Stop   Length Name                   Class
+ 00000H 00114H 00115H _TEXT                  CODE 16-bit
+               at offset 00000H 00115H bytes from STRUPPER.OBJ (STRUPPER.ASM)
+
+ 00116H 00194H 0007FH _DATA                  DATA 16-bit
+               at offset 00000H 0007FH bytes from STRUPPER.OBJ (STRUPPER.ASM)
+
+ 001A0H 0119FH 01000H STACK                  STACK 16-bit
+               at offset 00000H 01000H bytes from STRUPPER.OBJ (STRUPPER.ASM)
+
+
+ Origin   Group
+ 0011:0   DGROUP
+
+  Address         Publics by Name
+
+ 0000:008B       CopyBuffer
+ 0000:0097       CopyBufSW
+ 0000:0000       MAIN
+ 0000:00A3       MakeLower
+ 0000:00E3       MakeSwap
+ 0000:00C3       MakeUpper
+
+  Address         Publics by Value
+
+ 0000:0000       MAIN
+ 0000:008B       CopyBuffer
+ 0000:0097       CopyBufSW
+ 0000:00A3       MakeLower
+ 0000:00C3       MakeUpper
+ 0000:00E3       MakeSwap
+
+Program entry point at 0000:0000

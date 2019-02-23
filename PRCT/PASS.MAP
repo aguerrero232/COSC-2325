@@ -1,0 +1,20 @@
+
+ Start  Stop   Length Name                   Class
+ 00000H 00040H 00041H _TEXT                  CODE 16-bit
+               at offset 00000H 00041H bytes from PRCT.OBJ (PRCT.ASM)
+
+ 00042H 00083H 00042H _DATA                  DATA 16-bit
+               at offset 00000H 00042H bytes from PRCT.OBJ (PRCT.ASM)
+
+ 00090H 0108FH 01000H STACK                  STACK 16-bit
+               at offset 00000H 01000H bytes from PRCT.OBJ (PRCT.ASM)
+
+
+ Origin   Group
+ 0004:0   DGROUP
+
+  Address         Publics by Name
+
+
+  Address         Publics by Value
+

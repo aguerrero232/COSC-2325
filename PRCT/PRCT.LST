@@ -1,0 +1,134 @@
+Microsoft (R) Macro Assembler Version 6.11		    10/01/18 23:41:50
+PRCT.ASM						     Page 1 - 1
+
+
+				.model small
+
+				.stack 4096
+
+ 0000				.data
+ = 0014				passmaxS =20
+ 0000  000A [			prompt db 10 dup(?),10,13
+        00
+       ] 0A 0D
+ 000C  45 6E 74 65 72 20	  db  "Enter your pass :$"
+       79 6F 75 72 20 70
+       61 73 73 20 3A 24
+ 001E  000A [			  db 10 dup(?)
+        00
+       ]
+
+ 0028 50 41 53 53 57 4F		passMarker  db  "PASSWORD: $"
+       52 44 3A 20 24
+
+ 0033  0014 [			pass     db  passmaxS dup(?) ; 7 plus term char $
+        00
+       ]
+
+ 0047 2A 24			Ast     db  "*$"
+
+ 0049 0D 0A 24			crlf   db  13, 10,'$'
+
+ 0000				.code
+ 0000  B8 ---- R		    mov     ax, @data
+ 0003  8E D8			    mov     ds,ax
+
+				    ; Display Name prompt
+ 0005  8D 16 0000 R		    lea     dx, prompt
+ 0009  B4 09			    mov     ah, 9
+ 000B  CD 21			    int     21h
+
+ 000D  B9 0014			    mov     cx, passmaxS  ; gets up to 20
+				  
+ 0010  8D 36 0033 R		    lea     si, pass ; buffer to hold name
+ 0014  8D 16 0047 R		    lea     dx, Ast ; display *
+
+ 0018				TOPLOOP:
+				    ; get char typed
+ 0018  B4 07			    mov     ah, 7
+ 001A  CD 21			    int     21h
+				    ; save in our buffer
+ 001C  88 04			    mov     byte ptr[si], al
+
+				    ; Display Asterick
+				    ; Asterick already in dx
+ 001E  B4 09			    mov     ah, 9
+ 0020  CD 21			    int     21h
+
+				    ; increase our buffer pointer
+ 0022  46			    inc     si
+
+				    ; if enter jump to the BOTTOMLOOP
+ 0023  3C 0D			    CMP     AL,13
+				    JEZ      BOTTOMLOOP
+PRCT.ASM(50): error A2008: syntax error : JEZ
+
+
+ 0025  49			    dec     cx
+				    JEZ     BOTTOMLOOP ;continue until met 0
+PRCT.ASM(54): error A2008: syntax error : JEZ
+ 0026  EB F0			    JMP     TOPLOOP
+
+ 0028				BOTTOMLOOP:
+
+				    ; properly terminate our string
+ 0028  C6 04 24			    mov     byte ptr[si], "$"
+
+				    ; insert blank line
+ 002B  8D 16 0049 R		    lea     dx, crlf
+ 002F  B4 09			    mov     ah, 9
+ 0031  CD 21			    int     21h
+
+				    ; display password 
+ 0033  8D 16 0028 R		    lea     dx, passMarker
+ 0037  B4 09			    mov     ah, 9
+ 0039  CD 21			    int     21h
+
+				    ; Now display entered name
+ 003B  8D 16 0033 R		    lea     dx, pass
+ 003F  B4 09			    mov     ah, 9
+ 0041  CD 21			    int     21h
+				  
+				  .EXIT
+
+				end
+Microsoft (R) Macro Assembler Version 6.11		    10/01/18 23:41:50
+PRCT.ASM						     Symbols 2 - 1
+
+
+
+
+Segments and Groups:
+
+                N a m e                 Size     Length   Align   Combine Class
+
+DGROUP . . . . . . . . . . . . .	GROUP
+_DATA  . . . . . . . . . . . . .	16 Bit	 004C	  Word	  Public  'DATA'	
+STACK  . . . . . . . . . . . . .	16 Bit	 1000	  Para	  Stack	  'STACK'	 
+_TEXT  . . . . . . . . . . . . .	16 Bit	 0047	  Word	  Public  'CODE'	
+
+
+Symbols:
+
+                N a m e                 Type     Value    Attr
+
+@CodeSize  . . . . . . . . . . .	Number	 0000h	 
+@DataSize  . . . . . . . . . . .	Number	 0000h	 
+@Interface . . . . . . . . . . .	Number	 0000h	 
+@Model . . . . . . . . . . . . .	Number	 0002h	 
+@code  . . . . . . . . . . . . .	Text   	 _TEXT
+@data  . . . . . . . . . . . . .	Text   	 DGROUP
+@fardata?  . . . . . . . . . . .	Text   	 FAR_BSS
+@fardata . . . . . . . . . . . .	Text   	 FAR_DATA
+@stack . . . . . . . . . . . . .	Text   	 DGROUP
+Ast  . . . . . . . . . . . . . .	Byte	 0047	  _DATA	
+BOTTOMLOOP . . . . . . . . . . .	L Near	 0028	  _TEXT	
+TOPLOOP  . . . . . . . . . . . .	L Near	 0018	  _TEXT	
+crlf . . . . . . . . . . . . . .	Byte	 0049	  _DATA	
+passMarker . . . . . . . . . . .	Byte	 0028	  _DATA	
+passmaxS . . . . . . . . . . . .	Number	 0014h	 
+pass . . . . . . . . . . . . . .	Byte	 0033	  _DATA	
+prompt . . . . . . . . . . . . .	Byte	 0000	  _DATA	
+
+	   0 Warnings
+	   2 Errors

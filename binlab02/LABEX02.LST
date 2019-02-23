@@ -1,0 +1,348 @@
+Microsoft (R) Macro Assembler Version 6.11		    10/25/18 14:28:29
+LABEX02.ASM						     Page 1 - 1
+
+
+				;
+				; Binary debugging lab
+				;
+				; Pair Up.  
+				; Assemble this short ASM source to an executable, then load
+				; and TRACE through its machine code using the SYMDEB debugger.
+				;
+				; I suggest you keep this source up on one screen, with the
+				; debugger (in the DOS virtual machine).  While TRACING the 
+				; machine language in the debugger, FOLLOW ALONG in the 
+				; source code.
+				;
+				; As you do so, follow the instructions and make a table of
+				; the values you observed in the debugger.
+				;
+
+
+				.MODEL SMALL            ; Assembler directive specifying the segment model for the generated code
+				.386                    ; Assembler directive limiting us to instructions supported by 80386 CPU
+
+
+				;----- .STACK directive tells MASM to reserve 1024 bytes for the "stack" segment -----
+				;      (which we're not using explicitly, but is a VERY important!)
+				.STACK 1024             ; Setup 1K byte stack segment
+
+
+
+ 0000				.DATA
+
+				; String variable to print newline, i.e., cout << endl; or system.out.println("")
+ 0000 0D 0A 24			CRLF            DB      13, 10, '$'             
+
+				; String variables pre-formatted to print heading of table
+ 0003 45 58 50 4F 4E 45		HEADING         DB      "EXPONENT | 2^EXP (decimal) | 2^EXP (hex) | 2^EXP (binary) | OF | CF |", 13, 10, '$'
+       4E 54 20 7C 20 32
+       5E 45 58 50 20 28
+       64 65 63 69 6D 61
+       6C 29 20 7C 20 32
+       5E 45 58 50 20 28
+       68 65 78 29 20 7C
+       20 32 5E 45 58 50
+       20 28 62 69 6E 61
+       72 79 29 20 7C 20
+       4F 46 20 7C 20 43
+       46 20 7C 0D 0A 24
+ 004B 2D 2D 2D 2D 2D 2D		SEP_LINE        DB      "---------------------------------------------------------------------", 13, 10, '$'
+       2D 2D 2D 2D 2D 2D
+       2D 2D 2D 2D 2D 2D
+       2D 2D 2D 2D 2D 2D
+       2D 2D 2D 2D 2D 2D
+       2D 2D 2D 2D 2D 2D
+       2D 2D 2D 2D 2D 2D
+       2D 2D 2D 2D 2D 2D
+       2D 2D 2D 2D 2D 2D
+       2D 2D 2D 2D 2D 2D
+       2D 2D 2D 2D 2D 2D
+       2D 2D 2D 0D 0A 24
+				                       ;"    9    |        17       |     13      |       16       |  4 |  4 |
+
+
+				; String variables to print CARRY and OVERFLOW flag states in the table 
+				; Note each is pre-formatted to 5-char width to match heading above
+ 0093 20 20 4E 43 20 24		NC_STR          DB      "  NC ", '$'
+ 0099 20 20 43 59 20 24		CY_STR          DB      "  CY ", '$'
+ 009F 20 20 4E 56 20 24		NV_STR          DB      "  NV ", '$'
+ 00A5 20 20 4F 56 20 24		OV_STR          DB      "  OV ", '$'
+
+				; String variable to store numbers converted to string format for printing
+ 00AB  0020 [			DIGIT_BUFFER    DB      32 DUP ( ' ' )
+        20
+       ]
+				               
+
+
+				;------------------------------------------------------------------------------------------------
+				; *** NUMBER PRINTING MACRO SUPPORT ***
+				;------------------------------------------------------------------------------------------------
+				INCLUDE MACROS.INC
+			      C 
+			      C ;------------------------------------------------------------------------------------------
+			      C ; MACROS.INC
+			      C ;
+			      C ;       MACROS to simplify calling FORMAT_NUMBER procedure.
+			      C ;       Each macro passes the parameters - via the stack - necessary to achieve the 
+			      C ;       desired formatting.
+			      C ;
+			      C ;       These are *MACROS* - they are like editor macros: When the macro name is used
+			      C ;       (like PRINT_HEX_FORMAT, the first macro below), it is *replaced with the actual
+			      C ;       text of the macro's body*.  This is called 'macro expansion' - the name expands
+			      C ;       to the actual code or other items, that it names.
+			      C ;
+			      C ;       Macros are often used for commonly repeated sequences of ASM instructions, like
+			      C ;       passing parameters to functions.  An advantage is that, if a change is needed, 
+			      C ;       it can be made to the macro body, rather than everywhere the code would otherwise
+			      C ;       have been duplicated.
+			      C ;
+			      C ;       Macros themselves can be fairly complex, allowing text parameters to be inserted
+			      C ;       into the macro body, allowing flexible use.
+			      C ;
+			      C ;       You should read these macros and understand how they relate to passing parameters 
+			      C ;       to the FORMAT_NUMBER procedure.
+			      C ;
+			      C ;------------------------------------------------------------------------------------------
+			      C 
+			      C pushcontext all
+			      C 
+			      C .NOLIST
+			      C .LIST
+			      C popcontext all
+			      C 
+
+
+
+				;----- .CODE directive tells MASM the following source is part of a "code" segment -----
+ 0000				.CODE
+
+				EXTRN   FORMAT_NUMBER:NEAR              ; Declare that there is an external NEAR procedure 
+				                                        ; named FORMAT_NUMBER
+
+
+ 0000				MAIN    PROC
+				        .STARTUP
+
+				         
+				        ;-----------------------------------------------------------------------------       
+				        ; Ok... Some simple assembly language to explore binary numbers...
+				        ; An exercise in 
+				        ;    1. Binary/Hex/Decimal numbers, particularly powers-of-TWO
+				        ;    2. Debugging and Tracing code in the SYMDEB debugger
+				        ;    3. Understanding more complicated ASM code
+				        
+				        
+				        
+				        ; Initialize AX and CX make a simple loop
+				        ; that performs this simple (psuedocode) experiment:
+				        
+				        ;       CX = 0;
+				        ;       AX = 2^CX;      // AX = 2^0 = 1
+				        ;       while ( CX < 16 )
+				        ;          NOP  // stopping point to write down CX (decimal), AX (decimal), AX (hexidecimal), AX (binary)
+				        ;          CX++;     
+				        ;          AX = 2^CX;       // Actual ASM code simply doubles AX, which achieves same result cheaply
+				        ;       end while
+				        ;
+				        
+				        ; The loop will give us the results, printing in the following format
+				        ;
+				        ;
+				        ;     EXPONENT (CX) |   AX  (decimal) | AX   (hex) | AX = 2^CX (binary)  | OF | CF |
+				        ;     -----------------------------------------------------------------------------+
+				        ;           0                1            0001          0000000000000001   NV   NC   
+				        ;           1                2            0002          0000000000000010   ??   ??  
+				        ;         . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 
+				        ;          15              ?????          ????          ????????????????
+				        ; 
+
+ 0010  E8 0025			        CALL    PRINT_HEADER
+
+ 0013  BB 0000			        MOV     BX, 0                   ; We need to clear CF and OV on each iteration of the loop, so (0+0) does the trick
+ 0016  B9 0000			        MOV     CX, 0                   ; CX = exponent
+ 0019  B8 0001			        MOV     AX, 1                   ; AX = 2^CX = 2^0 == 1
+				              
+ 001C  E8 0028			        CALL    PRINT_ROW               ; print the starting conditions.              
+				      
+ 001F				AGAIN:  
+ 001F  03 DB			        ADD     BX, BX                  ; (0+0) clears OV and CY flags to NV/NC
+
+ 0021  41			        INC     CX                      ; increment exponent
+ 0022  03 C0			        ADD     AX,AX                   ; AX = 2^CX via doubling
+
+ 0024  90			        NOP                             ; STOP DEBUGGER HERE.
+ 0025  E8 001F			        CALL    PRINT_ROW
+								        
+ 0028  83 F9 10			        CMP     CX, 10h                 ; If CX < 16, do next iteration
+ 002B  7C F2			        JL      AGAIN
+
+
+				                                                               
+ 002D  B4 09			        MOV     AH, 9
+ 002F  BA 0000 R		        MOV     DX, OFFSET CRLF
+ 0032  CD 21			        INT     21h
+
+				        
+				        
+				        .EXIT           
+ 0038				MAIN    ENDP
+
+
+
+
+				;---------------------------------------------------------------------------------------
+				; Special purpose, prints formatted table heading and separator
+				;
+				;HEADING         DB      "EXPONENT | 2^EXP (decimal) | 2^EXP (hex) | 2^EXP (binary) | OF | CF |", 13, 10, '$'
+				;SEP_LINE        DB      "---------------------------------------------------------------------", 13, 10, '$'
+				;                        ;    9    |        17       |     13      |       16       |  4 |  4 |
+
+ 0038				PRINT_HEADER    PROC
+				        
+ 0038  BA 0003 R		        MOV     DX, OFFSET HEADING
+ 003B  B4 09			        MOV     AH, 9
+ 003D  CD 21			        INT     21h
+				        
+ 003F  BA 004B R		        MOV     DX, OFFSET SEP_LINE
+ 0042  B4 09			        MOV     AH, 9
+ 0044  CD 21			        INT     21h
+				        
+ 0046  C3			        RET
+ 0047				PRINT_HEADER    ENDP
+
+
+				;--------------------------------------------------------------------------------------
+				; Total Special Purpose print routine to print each row of the table
+				; INPUT:  CX=exponent, AX=2^CX, FLAGS (as is)
+				; OUTPUT: Prints one row of table in the standard format:
+				        ;HEADING         DB      "EXPONENT | 2^EXP (decimal) | 2^EXP (hex) | 2^EXP (binary) | OF | CF |", 13, 10, '$'
+				        ;SEP_LINE        DB      "---------------------------------------------------------------------", 13, 10, '$'
+				        ;                        ;    9    |        17       |     13      |       16       |  4 |  4 |
+
+ 0047				PRINT_ROW       PROC
+				           
+ 0047  60			        PUSHA
+				                                     
+ 0048  9C			        PUSHF           ; save *two* copies of the current flags 
+ 0049  9C			        PUSHF           ; so we can print both carry & overflow without being disturbed by the actual printing.
+				        
+				        PRINT_DEC_FORMAT DIGIT_BUFFER, CX, 9
+			     1	.NOLIST
+				        PRINT_DEC_FORMAT DIGIT_BUFFER, AX, 18
+			     1	.NOLIST
+				        PRINT_HEX_FORMAT DIGIT_BUFFER, AX, 14
+			     1	.NOLIST
+				        PRINT_BIN_FORMAT DIGIT_BUFFER, AX, 17    ;NOTE: The 'CRLF' parameter
+			     1	.NOLIST
+				        
+				        
+				        ; print flags HERE
+				        ;NC_STR          DB      "  NC ", '$'
+				        ;CY_STR          DB      "  CY ", '$'
+				        ;NV_STR          DB      "  NV ", '$'
+				        ;OV_STR          DB      "  OV ", '$'
+
+ 00A2  9D			        POPF                            ; retrieve actual flags from last 2^CX operation
+				        ;TODO: print overflow flag here
+
+ 00A3  BA 009F R		        MOV DX, Offset NV_STR
+ 00A6  71 03			        JNO OVPRINT
+ 00A8  BA 00A5 R		        MOV DX, Offset OV_STR
+ 00AB				OVPRINT:
+ 00AB  B4 09			        MOV AH,9
+ 00AD  CD 21			        INT 21h
+
+				        
+ 00AF  9D			        POPF                            ; retrieve actual flags from last 2^CX operation
+				        ;TODO: Print carry flag here
+				        
+				        
+ 00B0  BA 0093 R		        MOV DX, Offset NC_STR
+ 00B3  73 03			        JNC NCPRINT
+ 00B5  BA 0099 R		        MOV DX, Offset CY_STR
+ 00B8				NCPRINT:
+ 00B8  B4 09			        MOV AH,9
+ 00BA  CD 21			        INT 21h
+
+
+ 00BC  B4 09			        MOV AH,9
+ 00BE  BA 0000 R		        MOV DX, Offset CRLF
+ 00C1  CD 21			        INT 21h
+				        
+ 00C3  61			        POPA
+				                   
+ 00C4  C3			        RET
+ 00C5				PRINT_ROW       ENDP
+
+
+				; ---------- DON'T FORGET THE END AT... the end.  Seriously ----------
+				END
+
+
+
+
+Microsoft (R) Macro Assembler Version 6.11		    10/25/18 14:28:29
+LABEX02.ASM						     Symbols 2 - 1
+
+
+
+
+Macros:
+
+                N a m e                 Type
+
+PRINT_BIN_FORMAT . . . . . . . .	Proc
+PRINT_DEC_FORMAT . . . . . . . .	Proc
+PRINT_HEX_FORMAT . . . . . . . .	Proc
+
+
+Segments and Groups:
+
+                N a m e                 Size     Length   Align   Combine Class
+
+DGROUP . . . . . . . . . . . . .	GROUP
+_DATA  . . . . . . . . . . . . .	16 Bit	 00CB	  Word	  Public  'DATA'	
+STACK  . . . . . . . . . . . . .	16 Bit	 0400	  Para	  Stack	  'STACK'	 
+_TEXT  . . . . . . . . . . . . .	16 Bit	 00C5	  Word	  Public  'CODE'	
+
+
+Procedures,  parameters and locals:
+
+                N a m e                 Type     Value    Attr
+
+MAIN . . . . . . . . . . . . . .	P Near	 0000	  _TEXT	Length= 0038 Public
+  @Startup . . . . . . . . . . .	L Near	 0000	  _TEXT	
+  AGAIN  . . . . . . . . . . . .	L Near	 001F	  _TEXT	
+PRINT_HEADER . . . . . . . . . .	P Near	 0038	  _TEXT	Length= 000F Public
+PRINT_ROW  . . . . . . . . . . .	P Near	 0047	  _TEXT	Length= 007E Public
+  OVPRINT  . . . . . . . . . . .	L Near	 00AB	  _TEXT	
+  NCPRINT  . . . . . . . . . . .	L Near	 00B8	  _TEXT	
+
+
+Symbols:
+
+                N a m e                 Type     Value    Attr
+
+@CodeSize  . . . . . . . . . . .	Number	 0000h	 
+@DataSize  . . . . . . . . . . .	Number	 0000h	 
+@Interface . . . . . . . . . . .	Number	 0000h	 
+@Model . . . . . . . . . . . . .	Number	 0002h	 
+@code  . . . . . . . . . . . . .	Text   	 _TEXT
+@data  . . . . . . . . . . . . .	Text   	 DGROUP
+@fardata?  . . . . . . . . . . .	Text   	 FAR_BSS
+@fardata . . . . . . . . . . . .	Text   	 FAR_DATA
+@stack . . . . . . . . . . . . .	Text   	 DGROUP
+CRLF . . . . . . . . . . . . . .	Byte	 0000	  _DATA	
+CY_STR . . . . . . . . . . . . .	Byte	 0099	  _DATA	
+DIGIT_BUFFER . . . . . . . . . .	Byte	 00AB	  _DATA	
+FORMAT_NUMBER  . . . . . . . . .	L Near	 0000	  _TEXT	External
+HEADING  . . . . . . . . . . . .	Byte	 0003	  _DATA	
+NC_STR . . . . . . . . . . . . .	Byte	 0093	  _DATA	
+NV_STR . . . . . . . . . . . . .	Byte	 009F	  _DATA	
+OV_STR . . . . . . . . . . . . .	Byte	 00A5	  _DATA	
+SEP_LINE . . . . . . . . . . . .	Byte	 004B	  _DATA	
+
+	   0 Warnings
+	   0 Errors

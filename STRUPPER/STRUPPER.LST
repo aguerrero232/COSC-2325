@@ -1,0 +1,421 @@
+Microsoft (R) Macro Assembler Version 6.11		    10/09/18 00:16:05
+STRUPPER.ASM						     Page 1 - 1
+
+
+				; ASSIGNMENT  - STRUPPER  
+				; Author ARIEL GUERRERO
+
+
+				.MODEL SMALL    
+				.386            
+				               
+				;================================================================================
+				; STACK SEGMENT
+				;=================================================================================
+				.STACK 4096     
+
+
+				;=================================================================================
+				; DATA SEGMENT
+				;===================================================================================
+ 0000				.DATA 		
+ 0000 0D 0A 45 6E 74 65			Message		DB  13, 10,"Enter a String: ","$"
+       72 20 61 20 53 74
+       72 69 6E 67 3A 20
+       24
+ 0013 0D 0A 20 24			CRLF		DB 	13, 10," ", '$'
+ 0017 40				MAXSTRLEN	DB 	64
+ 0018 00				ACTSTRLEN	DB 	?
+					
+ 0019  0040 [				USERSTR		DB 	64 DUP(?)
+        00
+       ]
+ 0059 20 20 20 20 20 20			dummySTR		DB 	"                $", 13, 10
+       20 20 20 20 20 20
+       20 20 20 20 24 0D
+       0A
+ 006C 20 20 20 20 20 20			dummySTR2		DB 	"                $", 13, 10
+       20 20 20 20 20 20
+       20 20 20 20 24 0D
+       0A
+				;==================================================================================
+				;CODE SEGMENT
+				;==================================================================================
+ 0000				.CODE  
+
+
+				;----------------------------------------------------------------------------------
+				; Procedure: MAIN
+				;     Provide main program driver, entry point at .STARTUP and exit at .EXIT
+				; Input:
+				;			user input from keyboard using ---> ah,0ah    
+				; Output:
+				;			user str all lower 	   
+				;			user str all upper
+				;			user str sqwap cases
+				;			original user str
+				;
+				; Side Effects
+				;    N/A 
+				;----------------------------------------------------------------------------------
+ 0000				MAIN    PROC   
+
+				      .STARTUP        
+				     
+ 0010  8C D8				 MOV	AX, DS
+ 0012  8E C0				 MOV	ES, AX
+
+ 0014				TOPLOOP:
+
+					;prompt user
+ 0014  B4 09				MOV		AH, 9                   
+ 0016  BA 0000 R			MOV		DX, OFFSET Message     
+ 0019  CD 21				INT		21h      
+					
+					; take in user input
+ 001B  C6 06 0018 R 00			MOV		[ACTSTRLEN], 0
+ 0020  B4 0A				MOV		AH, 0Ah
+ 0022  BA 0017 R			MOV		DX, OFFSET MAXSTRLEN
+ 0025  CD 21				INT		21h
+
+					; make sure input is greater than 0
+ 0027  80 3E 0018 R 00			CMP		[ACTSTRLEN], 0
+ 002C  74 59				JZ 		PASTLOOP	
+
+					; moving max length into cx 
+ 002E  B9 0010				MOV		CX, 16
+ 0031  E8 0057				CALL 	CopyBuffer
+					
+					;make user string lower case
+ 0034  E8 006C				CALL 	MakeLower
+
+ 0037  B4 09				MOV		AH, 9
+ 0039  BA 0013 R			MOV		DX, OFFSET CRLF
+ 003C  CD 21				INT		21h
+
+					;print LowerCase buffer
+ 003E  B4 09				MOV		AH, 9
+ 0040  BA 0059 R			MOV		DX, OFFSET dummySTR
+ 0043  CD 21				INT		21h
+
+ 0045  B4 09				MOV		AH, 9
+ 0047  BA 0013 R			MOV		DX, OFFSET CRLF
+ 004A  CD 21				INT		21h
+
+ 004C  E8 003C				CALL 	CopyBuffer
+
+					;make string UpperCase
+ 004F  E8 0071				CALL 	MakeUpper
+
+					;print UpperCase buffer
+ 0052  B4 09				MOV		AH, 9
+ 0054  BA 0059 R			MOV		DX, OFFSET dummySTR
+ 0057  CD 21				INT		21h
+
+ 0059  B4 09				MOV		AH, 9
+ 005B  BA 0013 R			MOV		DX, OFFSET CRLF
+ 005E  CD 21				INT		21h
+					
+					
+ 0060  B9 0010				MOV		CX, 16
+ 0063  E8 0031				CALL 	CopyBufSW
+
+					;make string UpperCase
+ 0066  E8 007A				CALL 	MakeSwap
+
+					;print Swapped buffer
+ 0069  B4 09				MOV		AH, 9
+ 006B  BA 006C R			MOV		DX, OFFSET dummySTR2
+ 006E  CD 21				INT		21h
+
+ 0070  B4 09				MOV		AH, 9
+ 0072  BA 0013 R			MOV		DX, OFFSET CRLF
+ 0075  CD 21				INT		21h
+
+					;print original string as is
+ 0077  B4 09				MOV		AH, 9
+ 0079  BA 0019 R			MOV		DX, OFFSET USERSTR
+ 007C  CD 21				INT		21h
+
+ 007E  B4 09				MOV		AH, 9
+ 0080  BA 0013 R			MOV		DX, OFFSET CRLF
+ 0083  CD 21				INT		21h
+
+ 0085  EB 00				JMP 	PASTLOOP
+
+ 0087				PASTLOOP:
+				        
+				      .EXIT
+
+ 008B				MAIN    ENDP    
+
+				;----------------------------------------------------------------------------------
+				; Procedure: CopyBuffer
+				;     Copies one memory buffer of a given size to another
+				; Input:
+				;				src buffer		SI
+				;				dst buffer		DI
+				;				ACTSTRLEN		CX
+				; Output:
+				;    			 N/A
+				; Side Effects
+				;     			moves the user string into the dst string (dummy string)
+				;----------------------------------------------------------------------------------
+ 008B				CopyBuffer  PROC  
+
+ 008B  FC				CLD
+
+ 008C  8D 36 0019 R			LEA		SI, OFFSET USERSTR
+ 0090  8D 3E 0059 R			LEA		DI, OFFSET dummySTR
+ 0094  F3/ A4				REP		MOVSB
+
+ 0096  C3				RET
+
+ 0097				CopyBuffer  ENDP
+				;----------------------------------------------------------------------------------
+				; Procedure: CopyBuffer
+				;     Copies one memory buffer of a given size to another
+				; Input:
+				;				src buffer		SI
+				;				dst buffer		DI
+				;				ACTSTRLEN		CX
+				; Output:
+				;    			 N/A
+				; Side Effects
+				;     			moves the user string into the dst string (dummy string)
+				;----------------------------------------------------------------------------------
+ 0097				CopyBufSW  PROC  
+
+ 0097  FC				CLD
+
+ 0098  8D 36 0019 R			LEA		SI, OFFSET USERSTR
+ 009C  8D 3E 006C R			LEA		DI, OFFSET dummySTR2
+ 00A0  F3/ A4				REP		MOVSB
+
+ 00A2  C3				RET
+
+ 00A3				CopyBufSW  ENDP
+				;----------------------------------------------------------------------------------
+				; Procedure: MakeLower
+				;     Changes string to all Lowercase
+				; Input:
+				;			dummyStr : AL	
+				;			index of current char : BX
+				;
+				; Output:
+				;     		N/A
+				;
+				; Side Effects
+				;     		dummy string is now all lowercase 
+				;----------------------------------------------------------------------------------
+ 00A3				MakeLower  PROC   
+
+ 00A3  BB 0000				MOV		BX, 0	
+
+ 00A6				TOPLOOP:
+
+ 00A6  8A 87 0059 R			MOV		AL, dummySTR[BX]
+					
+ 00AA  83 FB 10				CMP		BX, 16
+ 00AD  74 13				JE 		PASTLOOP
+
+ 00AF  3C 40				CMP		AL, 40h		;check if uppercase letter 40h is 16x4 (16+16=32*2 = 64 )
+ 00B1  7E 0A				JLE 	BOTLOOP
+
+ 00B3  3C 5B				CMP		AL, 5Bh		;5BH is 5*16 +11 == (91)
+ 00B5  7D 06				JGE 	BOTLOOP
+
+ 00B7  04 20				ADD		AL, 20h		; 20h == 32 
+ 00B9  88 87 0059 R			MOV 	dummySTR[BX], AL
+
+ 00BD				BOTLOOP:
+
+ 00BD  83 C3 01				ADD		BX, 1
+ 00C0  EB E4				JMP 	TOPLOOP
+
+ 00C2				PASTLOOP:
+					
+ 00C2  C3				RET
+
+ 00C3				MakeLower  ENDP
+
+				;----------------------------------------------------------------------------------
+				; Procedure: MakeUpper
+				;     Changes string to all Lowercase
+				; Input:
+				;			dummyStr : AL	
+				;			index of current char : BX
+				;
+				; Output:
+				;     		N/A
+				;
+				; Side Effects
+				;     		dummy string is now all uppercase
+				;----------------------------------------------------------------------------------
+ 00C3				MakeUpper  PROC  
+					
+ 00C3  BB 0000				MOV		BX, 0		
+
+ 00C6				TOPLOOP:
+					
+ 00C6  8A 87 0059 R			MOV		AL, dummySTR[BX]
+
+ 00CA  83 FB 10				CMP		BX, 16
+ 00CD  74 13				JE		PASTLOOP
+
+ 00CF  3C 60				CMP		AL, 60h		;check if lowercase letter
+ 00D1  7E 0A				JLE 	BOTLOOP
+
+ 00D3  3C 7B				CMP		AL, 7Bh
+ 00D5  7D 06				JGE 	BOTLOOP
+
+ 00D7  2C 20				SUB		AL, 20h
+ 00D9  88 87 0059 R			MOV		dummySTR[BX], AL
+
+ 00DD				BOTLOOP:
+
+ 00DD  83 C3 01				ADD		BX, 1
+ 00E0  EB E4				JMP 	TOPLOOP
+
+ 00E2				PASTLOOP:
+					
+ 00E2  C3				RET
+
+ 00E3				MakeUpper  ENDP
+
+				;----------------------------------------------------------------------------------
+				; Procedure: MakeSwap
+				;     Changes string to all Lowercase
+				; Input:
+				;			dummyStr : AL	
+				;			index of current char : BX
+				;
+				; Output:
+				;     		N/A
+				;
+				; Side Effects
+				;     		dummy string is now lowercase where it was uppercase 
+				;			and uppercase where it was lowercase 
+				;----------------------------------------------------------------------------------
+ 00E3				MakeSwap  PROC   
+ 00E3  BB 0000				MOV 	BX,0
+ 00E6				TOP:
+
+					;Hold value of DI[BX] in al
+ 00E6  8A 87 006C R			MOV        AL, dummySTR2[BX]
+
+					;if  BX = CX
+ 00EA  83 FB 10				CMP        BX,16
+
+					;if count >DX
+ 00ED  74 25				JE        BOTTOM
+
+					;if value > 'Z' 90, continue
+ 00EF  3C 5A				CMP        AL, 90
+ 00F1  7E 04				JLE        PastUpper
+
+					;if value <= 'z' 122, check lowercase
+ 00F3  3C 7A				CMP        AL, 122
+ 00F5  7E 0D				JLE        PastLower
+
+ 00F7				PastUpper:
+
+					;if value >= 'A' 65, we lowercase
+ 00F7  3C 41				CMP        AL, 65
+ 00F9  7C 16				JL        INCREM
+
+					;value is withing 65-90
+ 00FB  04 20				ADD        AL,32
+
+					;SWAP VALUE
+ 00FD  88 87 006C R			MOV       dummySTR2[BX], AL
+ 0101  43				INC        BX
+ 0102  EB E2				JMP        TOP
+
+ 0104				PastLower:
+					;if value >= 'a' 97,  uppercase
+ 0104  3C 61				CMP        AL, 97
+ 0106  7C 09				JL        INCREM
+
+					;value is within 97-122
+ 0108  2C 20				SUB        AL,32
+
+					;ADD VALUE IN
+ 010A  88 87 006C R			MOV        dummySTR2[BX], AL
+ 010E  43				INC        BX
+ 010F  EB D5				JMP        TOP
+					
+ 0111				INCREM:
+ 0111  43				INC        BX
+ 0112  EB D2				JMP        TOP
+
+ 0114				BOTTOM:
+ 0114  C3				RET
+ 0115				MakeSwap  ENDP
+
+				END
+Microsoft (R) Macro Assembler Version 6.11		    10/09/18 00:16:05
+STRUPPER.ASM						     Symbols 2 - 1
+
+
+
+
+Segments and Groups:
+
+                N a m e                 Size     Length   Align   Combine Class
+
+DGROUP . . . . . . . . . . . . .	GROUP
+_DATA  . . . . . . . . . . . . .	16 Bit	 007F	  Word	  Public  'DATA'	
+STACK  . . . . . . . . . . . . .	16 Bit	 1000	  Para	  Stack	  'STACK'	 
+_TEXT  . . . . . . . . . . . . .	16 Bit	 0115	  Word	  Public  'CODE'	
+
+
+Procedures,  parameters and locals:
+
+                N a m e                 Type     Value    Attr
+
+CopyBufSW  . . . . . . . . . . .	P Near	 0097	  _TEXT	Length= 000C Public
+CopyBuffer . . . . . . . . . . .	P Near	 008B	  _TEXT	Length= 000C Public
+MAIN . . . . . . . . . . . . . .	P Near	 0000	  _TEXT	Length= 008B Public
+  @Startup . . . . . . . . . . .	L Near	 0000	  _TEXT	
+  TOPLOOP  . . . . . . . . . . .	L Near	 0014	  _TEXT	
+  PASTLOOP . . . . . . . . . . .	L Near	 0087	  _TEXT	
+MakeLower  . . . . . . . . . . .	P Near	 00A3	  _TEXT	Length= 0020 Public
+  TOPLOOP  . . . . . . . . . . .	L Near	 00A6	  _TEXT	
+  BOTLOOP  . . . . . . . . . . .	L Near	 00BD	  _TEXT	
+  PASTLOOP . . . . . . . . . . .	L Near	 00C2	  _TEXT	
+MakeSwap . . . . . . . . . . . .	P Near	 00E3	  _TEXT	Length= 0032 Public
+  TOP  . . . . . . . . . . . . .	L Near	 00E6	  _TEXT	
+  PastUpper  . . . . . . . . . .	L Near	 00F7	  _TEXT	
+  PastLower  . . . . . . . . . .	L Near	 0104	  _TEXT	
+  INCREM . . . . . . . . . . . .	L Near	 0111	  _TEXT	
+  BOTTOM . . . . . . . . . . . .	L Near	 0114	  _TEXT	
+MakeUpper  . . . . . . . . . . .	P Near	 00C3	  _TEXT	Length= 0020 Public
+  TOPLOOP  . . . . . . . . . . .	L Near	 00C6	  _TEXT	
+  BOTLOOP  . . . . . . . . . . .	L Near	 00DD	  _TEXT	
+  PASTLOOP . . . . . . . . . . .	L Near	 00E2	  _TEXT	
+
+
+Symbols:
+
+                N a m e                 Type     Value    Attr
+
+@CodeSize  . . . . . . . . . . .	Number	 0000h	 
+@DataSize  . . . . . . . . . . .	Number	 0000h	 
+@Interface . . . . . . . . . . .	Number	 0000h	 
+@Model . . . . . . . . . . . . .	Number	 0002h	 
+@code  . . . . . . . . . . . . .	Text   	 _TEXT
+@data  . . . . . . . . . . . . .	Text   	 DGROUP
+@fardata?  . . . . . . . . . . .	Text   	 FAR_BSS
+@fardata . . . . . . . . . . . .	Text   	 FAR_DATA
+@stack . . . . . . . . . . . . .	Text   	 DGROUP
+ACTSTRLEN  . . . . . . . . . . .	Byte	 0018	  _DATA	
+CRLF . . . . . . . . . . . . . .	Byte	 0013	  _DATA	
+MAXSTRLEN  . . . . . . . . . . .	Byte	 0017	  _DATA	
+Message  . . . . . . . . . . . .	Byte	 0000	  _DATA	
+USERSTR  . . . . . . . . . . . .	Byte	 0019	  _DATA	
+dummySTR2  . . . . . . . . . . .	Byte	 006C	  _DATA	
+dummySTR . . . . . . . . . . . .	Byte	 0059	  _DATA	
+
+	   0 Warnings
+	   0 Errors

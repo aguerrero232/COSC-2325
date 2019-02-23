@@ -1,0 +1,24 @@
+
+ Start  Stop   Length Name                   Class
+ 00000H 0003DH 0003EH _TEXT                  CODE 16-bit
+               at offset 00000H 0003EH bytes from PRCT2.OBJ (PRCT2.ASM)
+
+ 0003EH 0005CH 0001FH _DATA                  DATA 16-bit
+               at offset 00000H 0001FH bytes from PRCT2.OBJ (PRCT2.ASM)
+
+ 00060H 0105FH 01000H STACK                  STACK 16-bit
+               at offset 00000H 01000H bytes from PRCT2.OBJ (PRCT2.ASM)
+
+
+ Origin   Group
+ 0003:0   DGROUP
+
+  Address         Publics by Name
+
+ 0000:0000       prct2
+
+  Address         Publics by Value
+
+ 0000:0000       prct2
+
+Program entry point at 0000:0000
