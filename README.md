@@ -1,2 +1,5 @@
 # COSC-2325
-Computer Organization in x86 
+My Computer Organization assignments that I coded during the Fall Semester of 2018.
+
+Noteable Programs: Midterm.asm
+                   
