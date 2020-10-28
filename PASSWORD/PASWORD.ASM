@@ -1,5 +1,6 @@
 ; ASSIGNMENT #1 - HELLOASM - Validating your MSDOS development enviroment 
-; AUTHOR: Jonah Valdez. 
+; AUTHOR: Ariel Guerrero
+ 
 
 .MODEL SMALL   
 
